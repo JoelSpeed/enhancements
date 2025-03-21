@@ -27,7 +27,7 @@ superseded-by: []
 
 ## Summary
 
-We are on the cusp on introducing a new suite of APIs into OpenShift, the Cluster API or CAPI APIs.
+We are on the cusp of introducing a new suite of APIs into OpenShift, the Cluster API or CAPI APIs.
 We know already that OpenShift clusters are running these APIs, be that within HyperShift, MCE or even as customer workloads today.
 As we introduce these APIs into OpenShift's core payload, we need to ensure that we do not break existing use cases,
 and that we allow these use cases to continue to manage CRDs, in a way that does not break our core usage.
@@ -75,7 +75,7 @@ For these clusters, we must allow them to continue to manage the CAPI CRDs that 
 
 For the sake of the following example, we will assume that 4.N is the first version of OpenShift that includes the Cluster CAPI Operator, in it's fully functional mode, in the stable channel.
 
-1. The cluster admin upgrades into a version of 4.N-1 that includes the Cluster CAPI Operator in a reduced mode, where it implements pre-upgrade checks, and does not yet manage and CRDs, or install any operands.
+1. The cluster admin upgrades into a version of 4.N-1 that includes the Cluster CAPI Operator in a reduced mode, where it implements pre-upgrade checks, and does not yet manage any CRDs, or install any operands.
 1. The Cluster CAPI Operator detects that the cluster has a CRD installed that also exists within the Cluster CAPI Operator's transport configmaps[^2].
 1. The Cluster CAPI Operator marks itself as `Upgradeable=False`, with a message showing that one or more CRDs are already installed.
 1. The cluster admin configures the Cluster CAPI Operator to disable management of the CRDs that are already installed.
@@ -90,7 +90,7 @@ In this example, we assume that the cluster is either installed with the Cluster
 
 The cluster admin in this case has an operational CAPI environment within the cluster, and the cluster is managing its own CAPI CRDs.
 
-The cluster admin now wishes to install a newer version of a CAPI CRD, than exists in the cluster payload.
+The cluster admin now wishes to install a newer version of a CAPI CRD, than the version that exists in the cluster payload.
 
 1. The cluster admin adds the name of the CRD to the `UnmanagedAPIs` field of the Cluster CAPI Operator CRD spec.
 1. The Cluster CAPI Operator ensures a ValidatingAdmissionWebhook is configured to validate updates for CRDs (this may already be present if the list is not empty).
@@ -115,7 +115,7 @@ We assume initially that they have applied an incorrect update[^3].
 Over time, the admin upgrades various components and now decides it is time to remove the v1alpha1 schema from the CRD.
 
 1. The cluster admin applies the CRD to the cluster without the old v1alpha1 schema.
-1. The validation webhook detects that it still requires the v1alpha1 schema, and rejects the update.
+1. The validation webhook detects that the payload CAPI components still require the v1alpha1 schema, and rejects the update.
 1. The cluster admin upgrades their cluster to a newer version of OpenShift.
 1. The Cluster CAPI Operator runs pre-flight checks and detects that the newly required v1 schema is present already in the installed schema.
 1. The Cluster CAPI Operator also detects that the required v1alpha1 schema is present in the installed schema.
@@ -170,6 +170,7 @@ type CAPISpec struct {
   // The CAPI Operator will validate updates to unmanaged CRDs to prevent incompatible changes.
   // When an incompatible change is rejected, please update the OpenShift version before trying again.
   // Values should consist only of lower-case alphanumeric characters, periods (.) and hyphens (-), and should start and end with an alphanumeric character.
+  // Values should be the full Custom Resource Definition name of the API that is to be considered unmanaged.
   // Values should be at most 253 characters in length.
   // +kubebuilder:validation:XValidation:rule="oldSelf.exists(x, self.exists(y, x == y))",message="unmanagedAPIs may not be removed once they have been made unmanaged"
   // +kubebuilder:validation:XValidation:rule="self.exists_one(x, self.exists(y, x == y))",message="unmanagedAPIs must be unique"
@@ -213,7 +214,7 @@ This may mean over time, that HyperShift will be required to deploy and maintain
 
 #### Standalone Clusters
 
-The workflows and extensions described in this enhancement are targetted at standalone clusters.
+The workflows and extensions described in this enhancement are targeted at standalone clusters.
 
 #### Single-node Deployments or MicroShift
 
@@ -407,7 +408,7 @@ Existing Machines would not be generally affected.
 ## Open Questions
 
 1. What is the overlap of CRDs between core OCP and MCE/HCP, where could there be drift (does this actually matter? The mechanism is generic)
-1. How log do we need to keep old API versions around, once a new version is introduced (depends on range of supported versions)
+1. How long do we need to keep old API versions around, once a new version is introduced (depends on range of supported versions)
 1. Should validations be implemented to check that CRs admitted to the CAPI namespace only contain fields that are present in the payload CRD schema?
 
 ## Test Plan (TBD)
